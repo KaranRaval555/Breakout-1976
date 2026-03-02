@@ -1,12 +1,11 @@
-#include "base.h"
-#include <raylib.h>
+#include "main.h"
 
 int main() {
-  int score = 0;
-  int lives = 3;
-  int hits = 0;
-  const int paddleScale = 5;
-  const int ballScale = 5;
+  u8 lives = 3;
+  u16 score = 0;
+  u16 hits = 0;
+  const u8 paddleScale = 5;
+  const u8 ballScale = 5;
   float paddleSpeed = 800;
   bool isHorizontal;
   bool isPlaying = true;
@@ -16,19 +15,18 @@ int main() {
   InitAudioDevice();
   SetTargetFPS(60);
 
-  const Texture2D background =  LoadTexture("./assets/background.png");
-  const Texture2D ball =  LoadTexture("./assets/ball.png");
-  const Texture2D paddle =  LoadTexture("./assets/paddle.png");
-  const Font fontStyle =  LoadFont("./assets/rainyhearts.ttf");
-  const Texture2D blue_brick = LoadTexture("./assets/blue_brick.png");
-  const Texture2D green_brick = LoadTexture("./assets/green_brick.png");
-  const Texture2D yello_brick = LoadTexture("./assets/yellow_brick.png");
-  const Texture2D red_brick = LoadTexture("./assets/red_brick.png");
-  const Sound lifeLost = LoadSound("./sounds/lifeLost.wav");
-  const Sound batHit = LoadSound("./sounds/BatHit.mp3");
-  const Sound wall = LoadSound("./sounds/WallHit.mp3");
-  const Sound brick_sound = LoadSound("./sounds/brick.wav");
-
+  const Texture2D background =  LoadTexture("./assets/sprites/background.png");
+  const Texture2D ball =  LoadTexture("./assets/sprites/ball.png");
+  const Texture2D paddle =  LoadTexture("./assets/sprites/paddle.png");
+  const Font fontStyle =  LoadFont("./assets/sprites/rainyhearts.ttf");
+  const Texture2D blue_brick = LoadTexture("./assets/sprites/blue_brick.png");
+  const Texture2D green_brick = LoadTexture("./assets/sprites/green_brick.png");
+  const Texture2D yello_brick = LoadTexture("./assets/sprites/yellow_brick.png");
+  const Texture2D red_brick = LoadTexture("./assets/sprites/red_brick.png");
+  const Sound lifeLost = LoadSound("./assets/sounds/lifeLost.wav");
+  const Sound batHit = LoadSound("./assets/sounds/BatHit.mp3");
+  const Sound wall = LoadSound("./assets/sounds/WallHit.mp3");
+  const Sound brick_sound = LoadSound("./assets/sounds/brick.wav");
 
 
   Texture2D brickColors[8] = {blue_brick, blue_brick,green_brick, green_brick,yello_brick, yello_brick, red_brick, red_brick};
@@ -50,9 +48,9 @@ int main() {
   Vector2 initialBrickPos = {120.0f, 100.0f};
 
 
-  const int brickOffset = blue_brick.width * 2 + 4;
+  const u8 brickOffset = blue_brick.width * 2 + 4;
 
-  for (int i = 0; i < brickRows; i++) {
+  for (u8 i = 0; i < brickRows; i++) {
     initialize_brick_positions(brick_positions, &initialBrickPos, brickOffset, blue_brick.width, i);
   }
 
@@ -84,23 +82,22 @@ int main() {
       if (CheckCollisionRecs(ballArea, paddleArea)) {
         PlaySound(batHit);
 
-        float paddleCenter = paddleArea.x + paddleArea.width / 2.0f;
+        const float paddleCenter = paddleArea.x + paddleArea.width / 2.0f;
+        const float ballCenter = ball_pos.x + ballArea.width / 2.0f;
 
-        // Normalize hit position (-1 left, 0 center, 1 right)
-        float hitPoint = (ball_pos.x + ballArea.width / 2.0f - paddleCenter) 
+        // -1 left | 0 center | 1 right
+        float hitPoint = (ballCenter - paddleCenter) 
           / (paddleArea.width / 2.0f);
 
-        // Clamp just in case
+        // Clamp
         if (hitPoint < -1.0f) hitPoint = -1.0f;
         if (hitPoint >  1.0f) hitPoint =  1.0f;
 
-        float maxAngle = 75.0f * DEG2RAD;
-        float newAngle = hitPoint * maxAngle;
+        const float maxAngle = 45.0f * DEG2RAD;
+        const float newAngle = hitPoint * maxAngle;
 
-        float speed = sqrtf(ball_speed.x * ball_speed.x +
-            ball_speed.y * ball_speed.y);
+        const float speed = sqrtf(ball_speed.x * ball_speed.x + ball_speed.y * ball_speed.y);
 
-        // generate new direction vector
         ball_speed.x = speed * sinf(newAngle);
         ball_speed.y = -speed * cosf(newAngle);  // negative because ball goes upward
         ball_pos.y = paddleArea.y - ballArea.height;
@@ -185,16 +182,16 @@ void updateRecs(Vector2 *ballPos, Rectangle *ballA, Vector2 *paddlePos, Rectangl
 }
 
 void drawBricks(Texture2D *brickColors, Vector2 brick_positions[brickRows][brickCols]) {
-  for (int row = 0; row < brickRows; row++) {
-    for (int col = 0; col < brickCols; col++) {
+  for (u8 row = 0; row < brickRows; row++) {
+    for (u8 col = 0; col < brickCols; col++) {
       DrawTextureEx(brickColors[row], brick_positions[row][col], 0, 2, WHITE);
     }
   }
 }
 
-void initialize_brick_positions(Vector2 brickPositions[brickRows][brickCols], Vector2 *initialPos, int brickOffset, int brickHeight , int row) {
+void initialize_brick_positions(Vector2 brickPositions[brickRows][brickCols], Vector2 *initialPos, u8 brickOffset, u8 brickHeight , u8 row) {
   int rowGap = brickOffset;
-  for (int col = 0; col < brickCols; col++) {
+  for (u8 col = 0; col < brickCols; col++) {
     Vector2 pos = {initialPos->x + rowGap, initialPos->y};
     rowGap += brickOffset;
     brickPositions[row][col] = pos;
@@ -202,16 +199,16 @@ void initialize_brick_positions(Vector2 brickPositions[brickRows][brickCols], Ve
   initialPos->y = initialPos->y + brickHeight;
 }
 
-void handleBricksCollision(Vector2 brick_positions[brickRows][brickCols],Rectangle ball, Vector2 *ball_speed, int width, int height, Sound brick_sound,bool isHorizontal, int* score, int *hits, float *paddleSpeed){
-  for (int row = 0; row < brickRows; row++) {
-    for (int col = 0; col < brickCols; col++) {
+void handleBricksCollision(Vector2 brick_positions[brickRows][brickCols],Rectangle ball, Vector2 *ball_speed, u8 width, u8 height, Sound brick_sound,bool isHorizontal, u16* score, u16 *hits, float *paddleSpeed){
+  for (u8 row = 0; row < brickRows; row++) {
+    for (u8 col = 0; col < brickCols; col++) {
       Rectangle temp = {brick_positions[row][col].x, brick_positions[row][col].y, width, height};
       if(CheckCollisionRecs(temp, ball)) {
         PlaySound(brick_sound);
         brick_positions[row][col] = (Vector2){-100,-100};
         *hits += 1;
 
-        if(*hits == 4 || *hits == 12 || (row >= 0 && row < 4)) {
+        if(*hits == 4 || *hits == 12 || row < 4) {
           ball_speed->x *= 1.05f;
           ball_speed->y *= 1.05f;
           *paddleSpeed *= 1.05f;
